@@ -7,10 +7,13 @@ import com.amazonaws.auth.STSAssumeRoleSessionCredentialsProvider
 import com.amazonaws.auth.profile.ProfileCredentialsProvider
 import com.amazonaws.regions.Regions
 import com.amazonaws.regions.Regions.*
+import com.amazonaws.services.ec2.model.Subnet
+import com.amazonaws.services.ec2.model.Vpc
 import com.atlassian.performance.tools.aws.api.Aws
 import com.atlassian.performance.tools.aws.api.DependentResources
 import com.atlassian.performance.tools.aws.api.Investment
 import com.atlassian.performance.tools.aws.api.SshKeyFormula
+import com.atlassian.performance.tools.awsinfrastructure.api.network.Network
 import com.atlassian.performance.tools.awsinfrastructure.api.network.NetworkFormula
 import com.atlassian.performance.tools.awsinfrastructure.api.virtualusers.MulticastVirtualUsersFormula
 import com.atlassian.performance.tools.awsinfrastructure.api.virtualusers.ProvisionedVirtualUsers
@@ -24,7 +27,9 @@ import java.util.concurrent.CompletableFuture
 
 class AwsVus(
     duration: Duration,
-    private val region: Regions
+    private val region: Regions,
+    private val vpcId: String?,
+    private val subnetId: String?
 ) : VirtualUsersSource {
 
     private val lifespan = Duration.ofMinutes(10) + duration
@@ -45,10 +50,17 @@ class AwsVus(
             useCase = "Compare two Jiras the Falcon way",
             lifespan = lifespan
         )
-        val network = NetworkFormula(
-            investment = investment,
-            aws = aws
-        ).provision()
+        val network = if (vpcId != null && subnetId != null) {
+            Network(
+                Vpc().withVpcId(vpcId),
+                Subnet().withSubnetId(subnetId)
+            )
+        } else {
+            NetworkFormula(
+                investment = investment,
+                aws = aws
+            ).provision()
+        }
         val provisioned = MulticastVirtualUsersFormula.Builder(
                 nodes = 6,
                 shadowJar = dereference("jpt.virtual-users.shadow-jar")

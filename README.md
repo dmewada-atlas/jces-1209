@@ -14,5 +14,11 @@ Benchmark two Jiras against each other. Both [Jira Cloud] and [Jira Data Center]
 [AWS credentials]: docs/AWS-CREDENTIALS.md
 [example properties]: cohort-secrets/example.properties
 
+### AWS - Provision nodes to a vpc and subnet
+You specify both vpc and subnet of the nodes provisioned for JPT when using SlowAndMeaningful benchmark quality by 
+providing values for following as env variables:
+* subnetId
+* vpcId  
+
 ### Prior art
 Originally forked from [quick-303](https://github.com/atlassian/quick-303).
